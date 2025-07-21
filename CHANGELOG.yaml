@@ -1,3 +1,12 @@
+- v1.0.0:
+  date: '2025-07-21'
+  name: 'Full Stable Release'
+  features:
+    - Public interface remains unchanged from v0.5.1
+    - Added typescript typings and additional documentation
+    - Update depdendencies
+    - Add support for React 19 as a peer dependency
+
 - v0.5.1:
   date: '2023-06-02'
   name: 'Fix package.json exports'
