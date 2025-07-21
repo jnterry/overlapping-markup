@@ -8,7 +8,7 @@ export default defineConfig({
 
 	build: {
 		lib: {
-			entry: path.resolve(__dirname, 'src', 'OverlappingMarkup.jsx'),
+			entry: path.resolve(__dirname, 'src', 'OverlappingMarkup.tsx'),
 			name: 'overlapping-markup',
 			formats: ['es', 'umd', 'cjs'],
 			fileName: (format) => `overlapping-markup.${format}.js`,

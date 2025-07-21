@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "system",
+    "moduleResolution": "Node",
+    "noEmit": false,
+    "jsx": "react-jsx",
+		"outFile": "./dist/overlapping-markup.d.ts",
+		"declaration": true,
+		"emitDeclarationOnly": true
+	},
+  "exclude": ["node_modules", "dist"],
+
+  "include": ["src"],
+}
