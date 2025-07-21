@@ -1,7 +1,5 @@
 # Overview
 
-> :warning: **THIS LIBRARY IS A PRERELEASE** - while version number is < 1.0.0 breaking API changes may be made without warning
-
 This package Provides a React component capable of automatically generating the markup required to render text with arbitrary styling applied to potentially overlapping ranges.
 
 Conceptually, this package transforms (a JSON representation of) non-hierarchical tag soup such as:
@@ -31,13 +29,14 @@ The above example HTML could be rendered with the following code:
 
 ```javascript
 
-import OverlappingMarkup from 'overlapping-markup';
+import { OverlappingMarkup } from 'overlapping-markup';
+import type { StyleDef } from 'overlapping-markup';
 
-const StyleBold = {
+const StyleBold: StyleDef = {
   content: (props) => <b>{ props.children }</b>,
 };
 
-const StyleItalic = {
+const StyleItalic: StyleDef = {
   content: (props) => <i>{ props.children }</i>,
 };
 

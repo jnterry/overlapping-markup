@@ -19,24 +19,68 @@ export type TextWrapperComponent = React.ComponentType<{
 /**
  * Props for the before/content/after rendering components
  */
-export interface BlockRendererProps<TStyle, TState> {
+export interface ContentRendererProps<TStyleData = any, TState extends Record<string, any> = Record<string, any>> {
 	/**
 	 * Styling data for this block as taken from the styling array passed to the OverlappingMarkup component
 	 */
-	styleData: TStyle;
+	styleData: TStyleData;
 
 	/**
 	 * Auto-managed state for this block
 	 */
-	state?: TState;
+	state: TState;
 
 	/**
 	 * Function to update the auto-managed state for this block
 	 */
-	setState?: React.Dispatch<React.SetStateAction<TState>>;
+	setState: React.Dispatch<React.SetStateAction<TState>>;
+
+	/**
+	 * Content to render within this block. For a before/after block this will be empty! For
+	 * a content block it may be a mixture of text and/or other nested content renderers
+	 */
+	children?: React.ReactElement
 }
 
-export interface StylingBlock<TStyleData = any, TState = any> {
+/**
+ * Type for a content renderer component
+ */
+export type ContentRenderer<
+	TStyleData = any,
+	TState extends Record<string, any> = Record<string, any>
+> = React.ComponentType<ContentRendererProps<TStyleData, TState>>;
+
+/**
+ * Definition of the styling to use for a block including content renderers and any initial
+ * auto-managed state which then gets passed through to the content renderers
+ *
+ * These are intended to be reusable specifications that can be referenced by multiple `StylingBlocks`
+ * in the renderer's `styling` array
+ */
+export interface StyleDef<
+	TStyleData = any,
+	TState extends Record<string, any> = Record<string, any>
+> {
+	/** Optional component to render before the first text segment of this block */
+	before?: ContentRenderer<TStyleData, TState>;
+
+	/** Component to render each text segment of this block */
+	content: ContentRenderer<TStyleData, TState>;
+
+	/** Optional component to render after the final text segment of this block */
+	after?: ContentRenderer<TStyleData, TState>;
+
+	/** Initial state for this block on first render */
+	initialState?: TState;
+}
+
+/**
+ * Represents a single range of text with associated styling
+ */
+export interface StylingBlock<
+	TStyleData = any,
+	TState extends Record<string, any> = Record<string, any>
+> {
 	id?: string | number;
 
 	/** First character index of the text segment to be rendered */
@@ -51,23 +95,16 @@ export interface StylingBlock<TStyleData = any, TState = any> {
 	data?: TStyleData;
 
 	/**
-	 * Styling information for this block
+	 * Styling definition to use for this block
 	 */
-	style: {
-		/** Optional component to render before the first text segment of this block */
-		before?: React.ComponentType<BlockRendererProps<TStyleData, TState>>;
-
-		/** Component to render each text segment of this block */
-		content: React.ComponentType<BlockRendererProps<TStyleData, TState>>;
-
-		/** Optional component to render after the final text segment of this block */
-		after?: React.ComponentType<BlockRendererProps<TStyleData, TState>>;
-
-		/** Initial state for this block on first render */
-		initialState?: TState;
-	};
+	style: StyleDef<TStyleData, TState>;
 }
 
+/**
+ * Function called to break ties when sorting the styling elements into order. This can matter
+ * when multiple blocks have the same `min` and/or `max` values, since the order of the before/after
+ * content will depend on how such blocks are sorted
+ */
 export type SortTieBreaker = (a: StylingBlock, b: StylingBlock) => number;
 
 /**
@@ -120,8 +157,10 @@ function _generateElements(
 
 	///////////////
 	// Generate props to attach to the generated element
-	let props: BlockRendererProps<any, any> = {
+	let props: ContentRendererProps<any, {}> = {
 		styleData: root.data,
+		state: {},
+		setState: () => { },
 	};
 	if (root.id) {
 		props.state = componentState[root.id];
@@ -275,50 +314,52 @@ export interface OverlappingMarkupProps {
 	TextWrapper?: TextWrapperComponent;
 }
 
-export function OverlappingMarkup({
+/**
+ * Main overlapping markup rendering component
+ */
+export const OverlappingMarkup: (
+	React.FC<OverlappingMarkupProps> & {
+		defaultTieBreaker: SortTieBreaker;
+	}
+) = ({
 	text,
 	styling,
 	sortTieBreaker = defaultTieBreaker,
 	TextWrapper = React.Fragment,
-}: OverlappingMarkupProps) {
-	// Maps from block ids to the state for that block
-	let [componentState, setComponentState] = React.useState<Record<string, any>>({});
+}) => {
+		// Maps from block ids to the state for that block
+		let [componentState, setComponentState] = React.useState<Record<string, any>>({});
 
-	let hierachy = React.useMemo(() => {
-		setComponentState(x => _generateDefaultComponentState(styling, x));
+		let hierachy = React.useMemo(() => {
+			setComponentState(x => _generateDefaultComponentState(styling, x));
 
-		// Our internal functions consume the styling array as we process it, but we don't want to
-		// consume the actual array being used as a prop, or on subsequent re-renders there will be
-		// no styling - so we pass a copy into _buildHierachy
-		return _buildHierachy([...styling], sortTieBreaker);
-	}, [styling, sortTieBreaker]);
+			// Our internal functions consume the styling array as we process it, but we don't want to
+			// consume the actual array being used as a prop, or on subsequent re-renders there will be
+			// no styling - so we pass a copy into _buildHierachy
+			return _buildHierachy([...styling], sortTieBreaker);
+		}, [styling, sortTieBreaker]);
 
-	const elements = React.useMemo(() => {
-		let root = {
-			min: 0,
-			max: text.length,
-			style: { content: (props: any) => (<>{props.children}</>) },
-			children: hierachy,
-		};
+		const elements = React.useMemo(() => {
+			let root = {
+				min: 0,
+				max: text.length,
+				style: { content: (props: any) => (<>{props.children}</>) },
+				children: hierachy,
+			};
 
-		return _generateElements(text, root, componentState, setComponentState, TextWrapper);
-	}, [text, componentState, hierachy, setComponentState, TextWrapper]);
+			return _generateElements(text, root, componentState, setComponentState, TextWrapper);
+		}, [text, componentState, hierachy, setComponentState, TextWrapper]);
 
-	return <>{elements}</>;
-}
+		return <>{elements}</>;
+	}
+OverlappingMarkup.displayName = 'OverlappingMarkup';
+OverlappingMarkup.defaultTieBreaker = defaultTieBreaker;
 
 /**
  * Default sort order tie breaker which puts nests shorter styling blocks inside longer blocks
  */
-function defaultTieBreaker(a: StylingBlock, b: StylingBlock) {
+export function defaultTieBreaker(a: StylingBlock, b: StylingBlock) {
 	return b.max - a.max;
 }
 
-
-// attach to component, so user's of lib can fallback to default implementation within their own
-const OverlappingMarkupExport: (typeof OverlappingMarkup) & {
-	defaultTieBreaker: SortTieBreaker;
-} = OverlappingMarkup as any;
-OverlappingMarkupExport.defaultTieBreaker = defaultTieBreaker;
-
-export default OverlappingMarkupExport;
+export { OverlappingMarkup as default };

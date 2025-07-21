@@ -9,15 +9,15 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "system",
-    "moduleResolution": "Node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "noEmit": false,
     "jsx": "react-jsx",
-		"outFile": "./dist/overlapping-markup.d.ts",
+		"outDir": "./dist",
 		"declaration": true,
 		"emitDeclarationOnly": true
 	},
   "exclude": ["node_modules", "dist"],
 
-  "include": ["src"],
+  "include": ["src/overlapping-markup.tsx"]
 }
