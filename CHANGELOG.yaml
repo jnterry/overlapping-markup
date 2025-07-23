@@ -1,3 +1,9 @@
+- v1.0.1:
+  date: '2025-07-23'
+  name: 'Fix Repeated Text Bug'
+  fixes:
+    - Fix bug where certain ordering of styling blocks could cause the same text to be rendered multiple times
+
 - v1.0.0:
   date: '2025-07-21'
   name: 'Full Stable Release'

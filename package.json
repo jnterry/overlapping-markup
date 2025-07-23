@@ -7,7 +7,7 @@
     "url": "git+ssh://git@github.com/jnterry/overlapping-markup.git"
   },
   "licence": "MIT",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "devDependencies": {
     "@types/node": "^24.0.15",
     "@types/react": "^19.1.8",
